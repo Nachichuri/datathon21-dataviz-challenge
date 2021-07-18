@@ -3,7 +3,7 @@ import json
 import plotly.express as px
 from datetime import date, datetime
 
-from filters import get_daily_movie_views, get_daily_series_views
+from filters import get_daily_movie_views, get_daily_series_views, get_daily_shows_watch
 from helpers import get_clean_serie_name
 
 import dash
@@ -54,6 +54,8 @@ app.layout = html.Div([
     dcc.Graph(id='daily_movies', figure={}),
     html.Br(),
     dcc.Graph(id='daily_series', figure={}),
+    html.Br(),
+    dcc.Graph(id='daily_shows', figure={}),
 
     html.Div(html.P(['<> with ❤ by ',
                     html.A('Nachichuri', href='https://github.com/Nachichuri', target='_blank'),
@@ -69,7 +71,8 @@ app.layout = html.Div([
 
 @app.callback(
     [Output(component_id='daily_movies', component_property='figure'),
-     Output(component_id='daily_series', component_property='figure')],
+     Output(component_id='daily_series', component_property='figure'),
+     Output(component_id='daily_shows', component_property='figure')],
     
     [Input(component_id='date-picker-single', component_property='date'),
      Input(component_id='slct_amount', component_property='value')]
@@ -78,10 +81,13 @@ def update_graph(date_slctd, amount_slctd):
 
     parsed_date = datetime.strptime(date_slctd, '%Y-%m-%d').strftime('%d/%m/%Y')
 
-    df_daily_movies = pd.DataFrame(get_daily_movie_views(df_base_train, df_base_metadata, date_slctd, amount_slctd))
-    df_daily_series = get_daily_series_views(df_base_train, df_base_metadata, date_slctd, amount_slctd)
+    df_base_daily = df_base_train[df_base_train['tunein'].str.startswith(str(date_slctd))]
+
+    df_daily_movies = pd.DataFrame(get_daily_movie_views(df_base_daily, df_base_metadata, amount_slctd))
+    df_daily_series = get_daily_series_views(df_base_daily, df_base_metadata, amount_slctd)
     # The series include season and episode in every title, so we clean it for display in a new column:
     df_daily_series['clean_title'] = df_daily_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
+    df_daily_shows = get_daily_shows_watch(df_base_daily, df_base_metadata, amount_slctd)
     
 
     daily_movies = px.bar(
@@ -105,7 +111,19 @@ def update_graph(date_slctd, amount_slctd):
         template='plotly_dark'
     )
 
-    return daily_movies, daily_series
+    df_daily_shows = px.bar(
+        data_frame=df_daily_shows,
+        x='title',
+        y='views',
+        hover_data=['views', 'episode_title', 'show_id'],
+        labels={'title': f'Shows de TV más vistos el {parsed_date}',
+                'episode_title': 'Título',
+                'views': 'Visualizaciones',
+                'show_id': 'asset_id'},
+        template='plotly_dark'
+    )
+
+    return daily_movies, daily_series, df_daily_shows
 
 ########################################
 # 4. Run
