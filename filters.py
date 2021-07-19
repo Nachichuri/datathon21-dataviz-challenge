@@ -68,3 +68,19 @@ def get_daily_shows_watch(dataframe, df_metadata, amount):
   pd_shows_unicos = pd.DataFrame(unique_shows).reset_index().rename(columns={'index': 'show_id', 'content_id': 'views'})
 
   return pd.merge(pd_shows_unicos, df_metadata.drop_duplicates('content_id'), left_on='show_id', right_on='content_id', how='left').head(amount)
+
+# 1.4. Daily - Most watched episodes
+# In the documentation it is specified that all series fall in three categories
+# of 'show_type': <serie>, <web> and <rolling>.
+
+def get_daily_mostwatched_episodes(dataframe, df_metadata, amount):
+
+  df_day_views_with_meta = pd.merge(dataframe, df_metadata, on='asset_id')
+
+  df_f_is_serie = df_day_views_with_meta['show_type'].isin(['Serie', 'Web', 'Rolling'])
+
+  mostwatched_episodes = df_day_views_with_meta[df_f_is_serie]['asset_id'].value_counts()
+
+  pd_mostwatched_episodes = pd.DataFrame(mostwatched_episodes).reset_index().rename(columns={'index': 'serie_id', 'asset_id': 'views'})
+
+  return pd.merge(pd_mostwatched_episodes, df_metadata.drop_duplicates('asset_id'), left_on='serie_id', right_on='asset_id', how='left').head(amount)
