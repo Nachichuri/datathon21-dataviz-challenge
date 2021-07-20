@@ -11,15 +11,53 @@ a {
     color: #57e0b6;
 }
 
+hr {
+    margin-top: 1em;
+    margin-bottom: 3em;
+}
+
 #main-cont {
-    padding-left: 10%;
-    padding-right: 10%;
+    padding-left: 7%;
+    padding-right: 7%;
 }
 
 #logo {
     display: block;
     margin: auto;
     margin-top: 3em;
+}
+
+#main-selector {
+    display: flex;
+    align-items: center;
+}
+
+.selector-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+}
+
+.selector-container h2 {
+    padding-right: 1em;
+}
+
+.Select {
+    color: black !important;
+}
+
+.graph-container {
+    display: flex;
+    justify-content: center;
+}
+
+.graph-container div {
+    width: 49%;
+}
+
+.graph-container div:first-child {
+    margin-right: 0.5em;
 }
 
 #credits {
