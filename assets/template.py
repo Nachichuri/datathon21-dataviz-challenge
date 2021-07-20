@@ -8,7 +8,7 @@ def get_flow_template():
     flow_template['layout'].update(
         plot_bgcolor='#333333',
         paper_bgcolor='#333333',
-        colorway=['#57e0b6'],
+        colorway=['#57e0b6', '#00cbc6', '#00b3d6', '#0098df', '#007ad8', '#2d58c0'],
         hoverlabel = {'font': {'color': 'white'}, 'bgcolor': '#202020'},
         title_x=0.5
     )

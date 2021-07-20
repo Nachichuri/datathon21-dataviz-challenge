@@ -5,7 +5,7 @@ import plotly.io as pio
 from assets.template import get_flow_template
 from datetime import datetime
 
-from filters import get_daily_movie_views, get_daily_series_views, get_daily_shows_watch, get_daily_mostwatched_episodes
+from filters import get_daily_movie_views, get_daily_series_views, get_daily_shows_watch, get_daily_mostwatched_episodes, get_daily_device_used
 from helpers import get_clean_serie_name
 
 import dash
@@ -39,6 +39,7 @@ app.layout = html.Div([
 
     html.Img(src='assets/logo.webp', id='logo'),
     html.Hr(),
+    html.H1('Estadísticas diarias:', className='section-title'),
 
     html.Div([
         html.Div([
@@ -78,6 +79,12 @@ app.layout = html.Div([
     dcc.Graph(id='daily_shows', figure={})
     ], className='graph-container'),
     html.Br(),
+    dcc.Graph(id='daily_device_used', figure={}),
+
+
+
+    html.Hr(),
+    html.H1('Estadísticas mensuales:', className='section-title'),
 
     html.Div(html.P(['<> with ☕ by ',
                     html.A('Nachichuri', href='https://github.com/Nachichuri', target='_blank'),
@@ -95,7 +102,8 @@ app.layout = html.Div([
     [Output(component_id='daily_series', component_property='figure'),
      Output(component_id='daily_episodes', component_property='figure'),
      Output(component_id='daily_movies', component_property='figure'),
-     Output(component_id='daily_shows', component_property='figure')],
+     Output(component_id='daily_shows', component_property='figure'),
+     Output(component_id='daily_device_used', component_property='figure')],
     
     [Input(component_id='date-picker-single', component_property='date'),
      Input(component_id='slct_amount', component_property='value')]
@@ -112,7 +120,7 @@ def update_graph(date_slctd, amount_slctd):
     df_daily_series['clean_title'] = df_daily_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
     df_daily_shows = get_daily_shows_watch(df_base_daily, df_base_metadata, amount_slctd)
     df_daily_episodes = get_daily_mostwatched_episodes(df_base_daily, df_base_metadata, amount_slctd)
-    
+    df_daily_device_used = pd.DataFrame(get_daily_device_used(df_base_daily, df_base_train))
 
     daily_movies = px.bar(
         data_frame=df_daily_movies,
@@ -163,7 +171,20 @@ def update_graph(date_slctd, amount_slctd):
         title=f'Episodios con más visualizaciones el {parsed_date}'
     )
 
-    return daily_series, daily_episodes, daily_movies, daily_shows
+    daily_device_used = px.line(
+        data_frame=df_daily_device_used,
+        x='hour',
+        y='views',
+        color='device',
+        template='flow_theme',
+        hover_data=['device', 'hour', 'views'],
+        labels={'device': 'Dispositivo',
+                'hour': 'Horario',
+                'views': 'Visualizaciones'},
+        title=f'Consumo de contenido por dispositivo el {parsed_date}'
+    )
+
+    return daily_series, daily_episodes, daily_movies, daily_shows, daily_device_used
 
 ########################################
 # 4. Run

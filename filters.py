@@ -84,3 +84,23 @@ def get_daily_mostwatched_episodes(dataframe, df_metadata, amount):
   pd_mostwatched_episodes = pd.DataFrame(mostwatched_episodes).reset_index().rename(columns={'index': 'serie_id', 'asset_id': 'views'})
 
   return pd.merge(pd_mostwatched_episodes, df_metadata.drop_duplicates('asset_id'), left_on='serie_id', right_on='asset_id', how='left').head(amount)
+
+# 1.5 - Daily - Connections per device per hour
+
+def get_daily_device_used(dataframe, complete_dataframe):
+  base_views = {device: {n: 0 for n in range(24)} for device in complete_dataframe['device_type'].value_counts().keys().to_list()}
+
+  df_device_per_hour = dataframe.copy()
+
+  df_device_per_hour['watch_hour'] = df_device_per_hour.apply(
+      lambda row: int(row['tunein'][11:13]),
+      axis=1)
+  
+  info_dict = df_device_per_hour[['device_type', 'watch_hour']].value_counts()
+
+  views_per_hour_per_device = [item for item in zip(info_dict.keys().tolist(), info_dict.tolist())]
+
+  for item in views_per_hour_per_device:
+    base_views[item[0][0]][item[0][1]] = item[1]
+
+  return [{'device': key, 'hour': n, 'views': base_views[key][n]} for n in range(24) for key in base_views]
