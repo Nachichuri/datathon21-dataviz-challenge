@@ -1,7 +1,7 @@
 import pandas as pd
 
 # 1.1. Daily - Most watched movies
-def get_daily_movie_views(dataframe, df_metadata, amount):
+def get_movie_views(dataframe, df_metadata, amount):
   '''
   Returns a dictionary with asset id, number of views and movie title for the selected
   amount of most watched movies in the entered DF.
@@ -26,7 +26,7 @@ def get_daily_movie_views(dataframe, df_metadata, amount):
 # 1.2. Daily - Most watched series
 # In the documentation it is specified that all series fall in three categories
 # of 'show_type': <serie>, <web> and <rolling>.
-def get_daily_series_views(dataframe, df_metadata, amount):
+def get_series_views(dataframe, df_metadata, amount):
   '''
   Returns a Pandas DataFrame with asset id, number of views and series title for the selected
   amount of most watched series in the entered DF.
@@ -49,7 +49,7 @@ def get_daily_series_views(dataframe, df_metadata, amount):
 
 
 # 1.3. Daily - Most watched TV shows
-def get_daily_shows_watch(dataframe, df_metadata, amount):
+def get_shows_watch(dataframe, df_metadata, amount):
   '''
   Returns a dictionary with asset id, number of views and TV show title for the selected
   amount of most watched movies in the entered DF.
@@ -73,7 +73,7 @@ def get_daily_shows_watch(dataframe, df_metadata, amount):
 # In the documentation it is specified that all series fall in three categories
 # of 'show_type': <serie>, <web> and <rolling>.
 
-def get_daily_mostwatched_episodes(dataframe, df_metadata, amount):
+def get_mostwatched_episodes(dataframe, df_metadata, amount):
 
   df_day_views_with_meta = pd.merge(dataframe, df_metadata, on='asset_id')
 
@@ -87,7 +87,7 @@ def get_daily_mostwatched_episodes(dataframe, df_metadata, amount):
 
 # 1.5 - Daily - Connections per device per hour
 
-def get_daily_device_used(dataframe, complete_dataframe):
+def get_device_used(dataframe, complete_dataframe):
   base_views = {device: {n: 0 for n in range(24)} for device in complete_dataframe['device_type'].value_counts().keys().to_list()}
 
   df_device_per_hour = dataframe.copy()

@@ -4,7 +4,7 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from filters import get_daily_movie_views, get_daily_series_views, get_daily_shows_watch, get_daily_mostwatched_episodes
+from filters import get_movie_views, get_series_views, get_shows_watch, get_mostwatched_episodes
 
 ####################
 # Mocks
@@ -30,34 +30,34 @@ mock_amount = 5
 # Tests
 ####################
 
-def test_get_daily_movie_views():
+def test_get_movie_views():
     
-    output = get_daily_movie_views(mock_train, mock_meta, mock_amount)
+    output = get_movie_views(mock_train, mock_meta, mock_amount)
 
     assert type(output) == list
     assert type(output[0]) == dict
     assert len(output) <= mock_amount
 
 
-def test_get_daily_series_views():
+def test_get_series_views():
     
-    output = get_daily_series_views(mock_train, mock_meta, mock_amount)
+    output = get_series_views(mock_train, mock_meta, mock_amount)
 
     assert type(output) == type(mock_train)
     assert output.shape[0] <= mock_amount
 
 
-def test_get_daily_shows_views():
+def test_get_shows_views():
     
-    output = get_daily_shows_watch(mock_train, mock_meta, mock_amount)
+    output = get_shows_watch(mock_train, mock_meta, mock_amount)
 
     assert type(output) == type(mock_train)
     assert output.shape[0] <= mock_amount
 
 
-def test_get_daily_mostwatched_episodes():
+def test_get_mostwatched_episodes():
     
-    output = get_daily_mostwatched_episodes(mock_train, mock_meta, mock_amount)
+    output = get_mostwatched_episodes(mock_train, mock_meta, mock_amount)
 
     assert type(output) == type(mock_train)
     assert output.shape[0] <= mock_amount

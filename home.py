@@ -5,7 +5,7 @@ import plotly.io as pio
 from assets.template import get_flow_template
 from datetime import datetime
 
-from filters import get_daily_movie_views, get_daily_series_views, get_daily_shows_watch, get_daily_mostwatched_episodes, get_daily_device_used
+from filters import get_movie_views, get_series_views, get_shows_watch, get_mostwatched_episodes, get_device_used
 from helpers import get_clean_serie_name
 
 import dash
@@ -40,7 +40,6 @@ app.layout = html.Div([
     html.Img(src='assets/logo.webp', id='logo'),
     html.Hr(),
     html.H1('Estadísticas diarias:', className='section-title'),
-
     html.Div([
         html.Div([
             html.H2('Fecha:'),
@@ -66,7 +65,7 @@ app.layout = html.Div([
                 style={'width': "40%"}
                 )],
             className='selector-container')
-    ], id='main-selector'),
+    ], className='main-selector'),
 
     html.Br(),
     html.Div([
@@ -85,6 +84,40 @@ app.layout = html.Div([
 
     html.Hr(),
     html.H1('Estadísticas mensuales:', className='section-title'),
+    html.Div([
+        html.Div([
+            html.H2('Mes:'),
+            dcc.Dropdown(
+                id="month_amount",
+                options=[{"label": month, "value": month} for month in sorted(df_base_train['tunein'].str[0:7].value_counts().keys().to_list())],
+                multi=False,
+                clearable=False,
+                value=sorted(df_base_train['tunein'].str[0:7].value_counts().keys().to_list())[-1],
+                style={'width': "40%"}
+                )],
+            className='selector-container'),
+        html.Div([
+            html.H2('Cantidad:'),
+            dcc.Dropdown(
+                id="slct_amount_monthly",
+                options=[
+                    {"label": "Top 3", "value": 3},
+                    {"label": "Top 5", "value": 5},
+                    {"label": "Top 10", "value": 10}],
+                multi=False,
+                clearable=False,
+                value=5,
+                style={'width': "40%"}
+                )],
+            className='selector-container')
+    ], className='main-selector'),
+    
+    dcc.Graph(id='monthly_movies', figure={}),
+    html.Br(),
+    html.Div([
+    dcc.Graph(id='monthly_series', figure={}),
+    dcc.Graph(id='monthly_shows', figure={})
+    ], className='graph-container'),
 
     html.Div(html.P(['<> with ☕ by ',
                     html.A('Nachichuri', href='https://github.com/Nachichuri', target='_blank'),
@@ -103,24 +136,34 @@ app.layout = html.Div([
      Output(component_id='daily_episodes', component_property='figure'),
      Output(component_id='daily_movies', component_property='figure'),
      Output(component_id='daily_shows', component_property='figure'),
-     Output(component_id='daily_device_used', component_property='figure')],
+     Output(component_id='daily_device_used', component_property='figure'),
+     Output(component_id='monthly_movies', component_property='figure'),
+     Output(component_id='monthly_series', component_property='figure'),
+     Output(component_id='monthly_shows', component_property='figure')],
     
     [Input(component_id='date-picker-single', component_property='date'),
-     Input(component_id='slct_amount', component_property='value')]
+     Input(component_id='slct_amount', component_property='value'),
+     Input(component_id='month_amount', component_property='value'),
+     Input(component_id='slct_amount_monthly', component_property='value')]
 )
-def update_graph(date_slctd, amount_slctd):
+def update_graph(date_slctd, amount_slctd, month_amount, slct_amount_monthly):
 
     parsed_date = datetime.strptime(date_slctd, '%Y-%m-%d').strftime('%d/%m/%Y')
 
     df_base_daily = df_base_train[df_base_train['tunein'].str.startswith(str(date_slctd))]
+    df_base_monthly = df_base_train[df_base_train['tunein'].str.startswith(str(month_amount))]
 
-    df_daily_movies = pd.DataFrame(get_daily_movie_views(df_base_daily, df_base_metadata, amount_slctd))
-    df_daily_series = get_daily_series_views(df_base_daily, df_base_metadata, amount_slctd)
+    df_daily_movies = pd.DataFrame(get_movie_views(df_base_daily, df_base_metadata, amount_slctd))
+    df_monthly_movies = pd.DataFrame(get_movie_views(df_base_monthly, df_base_metadata, slct_amount_monthly))
+    df_daily_series = get_series_views(df_base_daily, df_base_metadata, amount_slctd)
+    df_monthly_series = get_series_views(df_base_monthly, df_base_metadata, slct_amount_monthly)
     # The series include season and episode in every title, so we clean it for display in a new column:
     df_daily_series['clean_title'] = df_daily_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
-    df_daily_shows = get_daily_shows_watch(df_base_daily, df_base_metadata, amount_slctd)
-    df_daily_episodes = get_daily_mostwatched_episodes(df_base_daily, df_base_metadata, amount_slctd)
-    df_daily_device_used = pd.DataFrame(get_daily_device_used(df_base_daily, df_base_train))
+    df_monthly_series['clean_title'] = df_monthly_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
+    df_daily_shows = get_shows_watch(df_base_daily, df_base_metadata, amount_slctd)
+    df_monthly_shows = get_shows_watch(df_base_monthly, df_base_metadata, slct_amount_monthly)
+    df_daily_episodes = get_mostwatched_episodes(df_base_daily, df_base_metadata, amount_slctd)
+    df_daily_device_used = pd.DataFrame(get_device_used(df_base_daily, df_base_train))
 
     daily_movies = px.bar(
         data_frame=df_daily_movies,
@@ -184,7 +227,43 @@ def update_graph(date_slctd, amount_slctd):
         title=f'Consumo de contenido por dispositivo el {parsed_date}'
     )
 
-    return daily_series, daily_episodes, daily_movies, daily_shows, daily_device_used
+    monthly_movies = px.bar(
+        data_frame=df_monthly_movies,
+        x='title',
+        y='views',
+        hover_data=['views', 'asset_id'],
+        labels={'title': 'Nombre de la película',
+                'views': 'Visualizaciones'},
+        template='flow_theme',
+        title=f'Películas más vistas en {datetime.strptime(month_amount, "%Y-%m").strftime("%B %Y")}'
+    )
+
+    monthly_series = px.bar(
+        data_frame=df_monthly_series,
+        x='clean_title',
+        y='views',
+        hover_data=['views', 'serie_id'],
+        labels={'clean_title': 'Nombre de la serie',
+                'views': 'Visualizaciones',
+                'serie_id': 'asset_id'},
+        template='flow_theme',
+        title=f'Series más vistas en {datetime.strptime(month_amount, "%Y-%m").strftime("%B %Y")}'
+    )
+
+    monthly_shows = px.bar(
+        data_frame=df_monthly_shows,
+        x='title',
+        y='views',
+        hover_data=['views', 'episode_title', 'show_id'],
+        labels={'title': 'Nombre del show',
+                'episode_title': 'Título',
+                'views': 'Visualizaciones',
+                'show_id': 'asset_id'},
+        template='flow_theme',
+        title=f'Shows de TV más vistos en {datetime.strptime(month_amount, "%Y-%m").strftime("%B %Y")}'
+    )    
+
+    return daily_series, daily_episodes, daily_movies, daily_shows, daily_device_used, monthly_movies, monthly_series, monthly_shows
 
 ########################################
 # 4. Run
