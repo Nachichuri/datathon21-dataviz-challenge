@@ -1,6 +1,6 @@
 # Campus Party 2021 - Datathon TELECOM 2021
 ## :chart_with_upwards_trend:  [Data Viz Challenge](https://github.com/Datathon2021/data-viz) :chart_with_downwards_trend:
-Read this document in [English]().
+Read this document in [English](https://github.com/Nachichuri/datathon21-dataviz-challenge/blob/master/README_en.md).
 
 ---
 
