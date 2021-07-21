@@ -10,12 +10,7 @@ from filters import get_movie_views, get_series_views, get_shows_watch, get_most
 # Mocks
 ####################
 
-mock_train = pd.DataFrame([
-    {'asset_id': 'A'}, {'asset_id': 'B'},
-    {'asset_id': 'C'}, {'asset_id': 'D'},
-    {'asset_id': 'E'}])
-
-mock_meta = pd.DataFrame([
+mock_df = pd.DataFrame([
     {'asset_id': 'A', 'show_type': 'Película', 'title': 'ABC', 'content_id': '1'},
     {'asset_id': 'B', 'show_type': 'Serie', 'title': 'DEF', 'content_id': '2'},
     {'asset_id': 'C', 'show_type': 'Web', 'title': 'GHI', 'content_id': '3'},
@@ -32,7 +27,7 @@ mock_amount = 5
 
 def test_get_movie_views():
     
-    output = get_movie_views(mock_train, mock_meta, mock_amount)
+    output = get_movie_views(mock_df, mock_amount)
 
     assert type(output) == list
     assert type(output[0]) == dict
@@ -41,24 +36,24 @@ def test_get_movie_views():
 
 def test_get_series_views():
     
-    output = get_series_views(mock_train, mock_meta, mock_amount)
+    output = get_series_views(mock_df, mock_df, mock_amount)
 
-    assert type(output) == type(mock_train)
+    assert type(output) == type(mock_df)
     assert output.shape[0] <= mock_amount
 
 
 def test_get_shows_views():
     
-    output = get_shows_watch(mock_train, mock_meta, mock_amount)
+    output = get_shows_watch(mock_df, mock_df, mock_amount)
 
-    assert type(output) == type(mock_train)
+    assert type(output) == type(mock_df)
     assert output.shape[0] <= mock_amount
 
 
 def test_get_mostwatched_episodes():
     
-    output = get_mostwatched_episodes(mock_train, mock_meta, mock_amount)
+    output = get_mostwatched_episodes(mock_df, mock_df, mock_amount)
 
-    assert type(output) == type(mock_train)
+    assert type(output) == type(mock_df)
     assert output.shape[0] <= mock_amount
 

@@ -14,5 +14,6 @@ def get_flow_template():
     )
 
     flow_template.layout.yaxis.gridcolor = '#202020'
+    flow_template.layout.xaxis.categoryorder = 'total descending'
 
     return flow_template

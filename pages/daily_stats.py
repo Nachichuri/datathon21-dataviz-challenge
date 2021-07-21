@@ -10,7 +10,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 from datetime import datetime
 
-from filters import get_movie_views, get_series_views, get_shows_watch, get_mostwatched_episodes, get_device_used
+from filters import get_movie_views, get_series_views, get_shows_watch, get_mostwatched_episodes, get_device_used, get_category_per_showtype, get_potential_most_dropped_content
 from helpers import get_clean_serie_name
 
 from app import app
@@ -76,6 +76,14 @@ layout = html.Div([
         ], className='graph-container'),
     html.Br(),
     dcc.Graph(id='daily_device_used', figure={}),
+    html.Br(),
+    dcc.Graph(id='daily_category_per_showtype', figure={}),
+    html.Br(),
+    html.Div([
+        dcc.Graph(id='daily_dropped_movies', figure={}),
+        dcc.Graph(id='daily_dropped_series', figure={})
+        ], className='graph-container'),
+    html.P('* Se entiende como "dropeado" al total de reproducciones que finalizaron antes de los 5 minutos de visualización.')
 ])
 
 
@@ -88,7 +96,10 @@ layout = html.Div([
      Output(component_id='daily_episodes', component_property='figure'),
      Output(component_id='daily_movies', component_property='figure'),
      Output(component_id='daily_shows', component_property='figure'),
-     Output(component_id='daily_device_used', component_property='figure')],
+     Output(component_id='daily_device_used', component_property='figure'),
+     Output(component_id='daily_category_per_showtype', component_property='figure'),
+     Output(component_id='daily_dropped_movies', component_property='figure'),
+     Output(component_id='daily_dropped_series', component_property='figure')],
     
     [Input(component_id='date-picker-single', component_property='date'),
      Input(component_id='slct_amount', component_property='value')]
@@ -97,15 +108,19 @@ def update_graph(date_slctd, amount_slctd):
 
     parsed_date = datetime.strptime(date_slctd, '%Y-%m-%d').strftime('%d/%m/%Y')
 
-    df_base_daily = df_base_train[df_base_train['tunein'].str.startswith(str(date_slctd))]
+    df_base_daily = df_base_train[df_base_train['tunein'].str.startswith(str(date_slctd))].merge(df_base_metadata, on='asset_id')
 
-    df_daily_movies = pd.DataFrame(get_movie_views(df_base_daily, df_base_metadata, amount_slctd))
+    df_daily_movies = pd.DataFrame(get_movie_views(df_base_daily, amount_slctd))
     df_daily_series = get_series_views(df_base_daily, df_base_metadata, amount_slctd)
     # The series include season and episode in every title, so we clean it for display in a new column:
     df_daily_series['clean_title'] = df_daily_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
     df_daily_shows = get_shows_watch(df_base_daily, df_base_metadata, amount_slctd)
     df_daily_episodes = get_mostwatched_episodes(df_base_daily, df_base_metadata, amount_slctd)
     df_daily_device_used = pd.DataFrame(get_device_used(df_base_daily, df_base_train))
+    df_daily_category_per_showtype = pd.DataFrame(get_category_per_showtype(df_base_daily, amount_slctd))
+    df_potentially_dropped_movies = get_potential_most_dropped_content(df_base_daily[df_base_daily['show_type'] == 'Película'], df_base_metadata, amount_slctd)
+    df_potentially_dropped_series = get_potential_most_dropped_content(df_base_daily[df_base_daily['show_type'] == 'Serie'], df_base_metadata, amount_slctd)
+    df_potentially_dropped_series['clean_title'] = df_potentially_dropped_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
 
     daily_movies = px.bar(
         data_frame=df_daily_movies,
@@ -169,4 +184,40 @@ def update_graph(date_slctd, amount_slctd):
         title=f'Consumo de contenido por dispositivo el {parsed_date}'
     )
 
-    return daily_series, daily_episodes, daily_movies, daily_shows, daily_device_used
+    daily_category_per_showtype = px.bar(
+        data_frame=df_daily_category_per_showtype,
+        x='category',
+        y='views',
+        color='show_type',
+        template='flow_theme',
+        hover_data=['category', 'show_type', 'views'],
+        labels={'category': 'Categoría',
+                'show_type': 'Tipo de show',
+                'views': 'Visualizaciones'},
+        title=f'Categorías con más visualizaciones el {parsed_date}'
+    )
+
+    daily_potentially_dropped_movies = px.bar(
+        data_frame=df_potentially_dropped_movies,
+        x='title',
+        y='drops',
+        hover_data=['drops', 'content_id'],
+        labels={'title': 'Nombre de la película',
+                'drops': 'Drops'},
+        template='flow_theme',
+        title=f'Películas más dropeadas* el {parsed_date}',
+    )
+
+    daily_potentially_dropped_series = px.bar(
+        data_frame=df_potentially_dropped_series,
+        x='clean_title',
+        y='drops',
+        hover_data=['drops', 'content_id'],
+        labels={'clean_title': 'Nombre de la serie',
+                'drops': 'Drops'},
+        template='flow_theme',
+        title=f'Series más dropeadas* el {parsed_date}',
+    )
+
+
+    return daily_series, daily_episodes, daily_movies, daily_shows, daily_device_used, daily_category_per_showtype, daily_potentially_dropped_movies, daily_potentially_dropped_series
