@@ -49,7 +49,9 @@ pip install -r requirements.txt
 4. Unzip the main dataset in the data/ folder
 
 ```bash
-unzip data/train.csv.zip data/
+cd data/
+unzip train.csv.zip
+cd ..
 ```
 
 5. Run tests to see everything is working as planned

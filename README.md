@@ -48,7 +48,9 @@ pip install -r requirements.txt
 4. Descomprimí el dataset de visualizaciones en la carpeta data/
 
 ```bash
-unzip data/train.csv.zip data/
+cd data/
+unzip train.csv.zip
+cd ..
 ```
 
 5. Probá que todo este en orden
