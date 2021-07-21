@@ -95,7 +95,7 @@ def update_graph(month_amount, slct_amount_monthly):
     # The series include season and episode in every title, so we clean it for display in a new column:
     df_monthly_series['clean_title'] = df_monthly_series.apply(lambda row: get_clean_serie_name(row['title']), axis=1)
     df_monthly_shows = get_shows_watch(df_base_monthly, df_base_metadata, slct_amount_monthly)
-    # Required metadata for map
+    # Required metadata for choropleth
     gapminder = px.data.gapminder().query('year==2007')
     df_country_from_watched_content = pd.DataFrame(get_country_from_watched_content(df_base_monthly))
 

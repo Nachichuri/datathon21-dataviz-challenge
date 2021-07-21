@@ -3,15 +3,15 @@ import plotly.express as px
 import pycountry
 from datetime import datetime
 
-# 1.1. Daily - Most watched movies
+
+# 1. Most watched movies
 def get_movie_views(dataframe, amount):
   '''
   Returns a dictionary with asset id, number of views and movie title for the selected
   amount of most watched movies in the entered DF.
-  
+
   Arguments:
-  dataframe(Pandas DataFrame): Flow DF with all daily visualizatons.
-  df_metadata(Pandas DataFrame): Flow DF with all content metadata.
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
   amount(str): Integer showing the amount of movies to return.
   '''
   # Filter by type
@@ -24,7 +24,7 @@ def get_movie_views(dataframe, amount):
   return [{'asset_id': movie[0][0], 'title': movie[0][1], 'views': movie[1]} for movie in top_movies]
 
 
-# 1.2. Daily - Most watched series
+# 2. Most watched series
 # In the documentation it is specified that all series fall in three categories
 # of 'show_type': <serie>, <web> and <rolling>.
 def get_series_views(dataframe, df_metadata, amount):
@@ -33,31 +33,33 @@ def get_series_views(dataframe, df_metadata, amount):
   amount of most watched series in the entered DF.
   
   Arguments:
-  dataframe(Pandas DataFrame): Flow DF with all daily visualizatons.
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
   df_metadata(Pandas DataFrame): Flow DF with all content metadata.
   amount(str): Integer showing the amount of series to return.
   '''
+  # Filter by type
   df_f_is_serie = dataframe['show_type'].isin(['Serie', 'Web', 'Rolling'])
 
-  # Las series pueden tener varios caps
+  # Series can have multiple chapters, so we keep only the series by its content id
   unique_series = dataframe[df_f_is_serie]['content_id'].value_counts()
 
-  pd_series_unicas = pd.DataFrame(unique_series).reset_index().rename(columns={'index': 'serie_id', 'content_id': 'views'})
+  df_unique_series = pd.DataFrame(unique_series).reset_index().rename(columns={'index': 'serie_id', 'content_id': 'views'})
 
-  return pd.merge(pd_series_unicas, df_metadata.drop_duplicates('content_id'), left_on='serie_id', right_on='content_id', how='left').head(amount)
+  return pd.merge(df_unique_series, df_metadata.drop_duplicates('content_id'), left_on='serie_id', right_on='content_id', how='left').head(amount)
 
 
-# 1.3. Daily - Most watched TV shows
+# 3. Most watched TV shows
 def get_shows_watch(dataframe, df_metadata, amount):
   '''
-  Returns a dictionary with asset id, number of views and TV show title for the selected
-  amount of most watched movies in the entered DF.
+  Returns a Pandas DataFrame with asset id, number of views and show title for the selected
+  amount of most watched shows in the entered DF.
   
   Arguments:
-  dataframe(Pandas DataFrame): Flow DF with all daily visualizatons.
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
   df_metadata(Pandas DataFrame): Flow DF with all content metadata.
-  amount(str): Integer showing the amount of movies to return.
+  amount(str): Integer showing the amount of shows to return.
   '''
+  # Filter by type
   df_f_is_show = dataframe['show_type'].isin(['TV'])
 
   unique_shows = dataframe[df_f_is_show]['content_id'].value_counts()
@@ -66,11 +68,21 @@ def get_shows_watch(dataframe, df_metadata, amount):
 
   return pd.merge(pd_shows_unicos, df_metadata.drop_duplicates('content_id'), left_on='show_id', right_on='content_id', how='left').head(amount)
 
-# 1.4. Daily - Most watched episodes
-# In the documentation it is specified that all series fall in three categories
-# of 'show_type': <serie>, <web> and <rolling>.
 
+# 4. Most watched episodes
+# On top of general information about show type, since series are the most watched content, let's also
+# get information about the most watched episodes
 def get_mostwatched_episodes(dataframe, df_metadata, amount):
+  '''
+  Returns a Pandas DataFrame with asset id, number of views and episode title for the selected
+  amount of most watched serie episode in the entered DF.
+  
+  Arguments:
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
+  df_metadata(Pandas DataFrame): Flow DF with all content metadata.
+  amount(str): Integer showing the amount of episodes to return.
+  '''
+  # Filter by type
   df_f_is_serie = dataframe['show_type'].isin(['Serie', 'Web', 'Rolling'])
 
   mostwatched_episodes = dataframe[df_f_is_serie]['asset_id'].value_counts()
@@ -79,9 +91,20 @@ def get_mostwatched_episodes(dataframe, df_metadata, amount):
 
   return pd.merge(pd_mostwatched_episodes, df_metadata.drop_duplicates('asset_id'), left_on='serie_id', right_on='asset_id', how='left').head(amount)
 
-# 1.5 - Daily - Connections per device per hour
 
+# 5 - Connections per device per hour
+# The idea is to see what devices the client use to consume content, and to see
+# how media consumption devices vary through the day
 def get_device_used(dataframe, complete_dataframe):
+  '''
+  Returns a list of dictionaries with device type, hour of day and amount of views for all the
+  content watched in the first DF.
+  
+  Arguments:
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
+  complete_dataframe(Pandas DataFrame): Unfiltered train dataframe to get all available categories.
+  '''
+  # We get all the available devices from the unfiltered DataFrame
   base_views = {device: {n: 0 for n in range(24)} for device in complete_dataframe['device_type'].value_counts().keys().to_list()}
 
   df_device_per_hour = dataframe.copy()
@@ -99,8 +122,19 @@ def get_device_used(dataframe, complete_dataframe):
 
   return [{'device': key, 'hour': n, 'views': base_views[key][n]} for n in range(24) for key in base_views]
 
-# 1.6 - Categories per show type
+
+# 6 - Categories per show type
+# Now we want to get information regardin the most watched categories, and what
+# show types compose those categories
 def get_category_per_showtype(dataframe, amount):
+  '''
+  Returns a list of dictionaries with device category, show type and amount of views for all the
+  content watched in the entered DF.
+  
+  Arguments:
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
+  amount(str): Integer showing the amount of episodes to return.
+  '''
   # We only keep the main show types
   filtered_showtypes = dataframe[dataframe['show_type'].isin(['Serie', 'TV', 'Película'])].copy()
   # We keep only the first (supposedly main) category listed if there are more than none
@@ -114,10 +148,17 @@ def get_category_per_showtype(dataframe, amount):
   return [{'category': entry[0][0], 'show_type': entry[0][1], 'views': entry[1]} for entry in final_list]
 
 
-# 1.7 - Country of origin of all views
-
+# 7 - Country of origin of all views
+# Now the idea is to see which country the most watched content comes from
 def get_country_from_watched_content(dataset):
-
+  '''
+  Returns a list of dictionaries with country name and amount of individually watched 
+  content for that country, for all the content watched in the entered DF.
+  
+  Arguments:
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
+  '''
+  # We use the pycountry library to get all alpha_2 (2 digit) country names
   country_list = {country.alpha_2: country.name for country in pycountry.countries}
 
   df_country_from_watched_content = dataset['country_of_origin'].value_counts()
@@ -128,11 +169,24 @@ def get_country_from_watched_content(dataset):
 
 
 # 8 - Potentially dropped content
+# Now we're assuming that if a user starts watching content for more than a minute, and then
+# stops watching it before 5 minutes have elapsed, the user didn't like the content and thus
+# dropped it from his watch list. The idea is to detect content that might not be a good asset.
 def get_potential_most_dropped_content(dataframe, df_metadata, amount):
+  '''
+  Returns a Pandas DataFrame with the top selected amount of content that the user decided to
+  stop watching it before 5 min had elapsed since tune in.
+  
+  Arguments:
+  dataframe(Pandas DataFrame): Flow DF with all visualizatons.
+  df_metadata(Pandas DataFrame): Flow DF with all content metadata.
+  amount(str): Integer showing the amount of top dropped content to return.
+  '''
   df_content = dataframe.copy()
-
+  
   df_content['seconds_watched'] = df_content.apply(lambda row: (datetime.strptime(row['tuneout'][:16], '%Y-%m-%d %H:%M') - datetime.strptime(row['tunein'][:16], '%Y-%m-%d %H:%M')).seconds, axis=1)
 
+  # If the user was 1 minute into watching the content but decided to stop before 5 mins, we consider it a drop:
   df_content_with_sec = df_content[(df_content['seconds_watched'] > 60) & (df_content['seconds_watched'] < 300)]
   
   drop_per_entry = [{'content_id': entry[0], 'drops': entry[1]} for entry in zip(df_content_with_sec['content_id'].value_counts().keys().to_list(), df_content_with_sec['content_id'].value_counts().to_list())]
