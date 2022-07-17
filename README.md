@@ -1,51 +1,52 @@
 # Campus Party 2021 - Datathon TELECOM 2021
 ## :chart_with_upwards_trend:  [Data Viz Challenge](https://github.com/Datathon2021/data-viz) :chart_with_downwards_trend:
-Read this document in [English](https://github.com/Nachichuri/datathon21-dataviz-challenge/blob/master/README_en.md).
+Lee este documento en [Español](https://github.com/Nachichuri/datathon21-dataviz-challenge/blob/master/README.md).
 
 ---
 
-## :thought_balloon: 1. Información del desafío :
-Enmarcado en la Campus Party 2021, TELECOM realizó un Data Challenge abierto con la siguiente consigna:
+## :thought_balloon: 1. Challenge information:
+During 2021 Campus Party edition, TELECOM company launched an open Data Challenge with the following mission:
 
+**Using a dataset containing Flow Platform's view history, create an effective visualization that helps understand and/or describe the dataet and get insights.** (Flow is Telecom's on-demand content platform with movies, series and TV shows.)
 *Utilizando un conjunto de datos sobre el historial de visualizaciones de clientes en la plataforma Flow: “Armar una visualización efectiva que ayude a entender/describir el data set y obtener insights”*
 
-## :running: 2. Ejecución:
-Para resolver el desafio se armó un panel informativo que permite acceder a estadísticas diarias y mensuales sobre el contenido consumido en la plataforma:
+## :running: 2. Execution:
+To solve the challenge, I made a visualization panel that shows daily and monthly stats about the content watched on the platform:
 
-### :suspect: Acceso al panel: http://143.198.181.204:3569/
+### :suspect: Access: http://143.198.181.204:3569/
 
 ![](assets/overview.gif)
 
-Si bien los datasets usados para el desafio tienen información muy variada y rica, se definieron visualizaciones prioritarias y se trabajó en pulir los algoritmos de filtrado y la presentación de resultados. Hay muchísima más información disponible para explotar y seguir nutriendo el panel.
+The provided datasets contain a ton of information, so I prioritized the graphs I considered more useful, and worked both on said graphs' filtering functions and the data presentation itself. There's actually a lot more of information available to keep feeding the panel with more stats.
 
-## :wrench: 3. Herramientas utilizadas:
-El desafio se resolvió con Python, utilizando un panel de [Dash](https://dash.plotly.com/introduction), el cual muestra graficos de [Plotly](https://plotly.com/python/plotly-express/) alimentados por DataFrames de [Pandas](https://pandas.pydata.org/about/) filtrados para lograr el set de datos deseado. Lo bueno de usar tecnologías como Pandas es que con muy pocas modificaciones en el codigo, se puede obtener el contenido filtrado de los datasets directamente desde una API o una base de datos, y poder procesar toda la informacion disponible.
+## :wrench: 3. Tools used:
+The main programming language used is Python. I created an interactive [Dash](https://dash.plotly.com/introduction) panel, containing [Plotly](https://plotly.com/python/plotly-express/) graphs which are fed by [Pandas](https://pandas.pydata.org/about/) DataFrames, filtered to get the required datasets. What's good about using technologies like Pandas is that with few source code modifications, you can get the dashboard information for a dataset returned from a database, datalake or API.
 
-## :chart_with_upwards_trend: 4. Acceso al panel:
-### **Opción 1 - Online**
-Hasta la finalización de la Datathon estará disponible para su consumo en un droplet con la siguiente direccion:
+## :chart_with_upwards_trend: 4. Panel access:
+### **Option 1 - Online**
+The panel will be online until the Datathon's closing day, hosted on a DO droplet at:
 - [143.198.181.204:3569 (FLOW)](http://143.198.181.204:3569/)
-### **Opcion 2 - Ejecución local**
-1. Creá un nuevo directorio y cloná este repositorio:
+### **Option 2 - Local execution**
+1. Create a new directory and clone this repo:
 
 ```bash
 git clone https://github.com/Nachichuri/datathon21-dataviz-challenge.git
 ```
-2. (Opcional) Creá un virtual environment:
+2. (Opt.) Create a virtual environment:
 
 ```bash
 pip install virtualenv
 virtualenv venv
 ```
 
-3. Instalá las librerias requeridas:
+3. Install required libraries:
 
 ```bash
 cd datathon21-dataviz-challenge/
 pip install -r requirements.txt
 ```
 
-4. Descomprimí el dataset de visualizaciones en la carpeta data/
+4. Unzip the main dataset in the data/ folder
 
 ```bash
 cd data/
@@ -53,19 +54,19 @@ unzip train.csv.zip
 cd ..
 ```
 
-5. Probá que todo este en orden
+5. Run tests to see everything is working as planned
 
 ```bash
 pytest
 ```
 
-6. Ejecutá el servidor de pruebas
+6. Run Dash's development server 
 
 ```bash
 python index.py
 ```
 
-#### Listo! Podés acceder entrando a [localhost:3569 (FLOW)](http://localhost:3569/).
+#### All done! You can access the panel writing [localhost:3569 (FLOW)](http://localhost:3569/) on your browser.
 
-## :mailbox_with_mail: 5. Contacto:
-Podés escribirme con dudas, consultas o sugerencias a nachichuri@gmail.com o @nachichuri en Telegram :smile:
+## :mailbox_with_mail: 5. Reach out:
+You can reach me at nachichuri@gmail.com or @nachichuri in Telegram :smile:
